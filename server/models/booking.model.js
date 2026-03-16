@@ -91,4 +91,38 @@ async function countByCleanerId(cleanerId) {
   return rows[0];
 }
 
-module.exports = { create, findById, findByHostId, findByCleanerId, updateStatus, countByHostId, countByCleanerId };
+async function updatePaymentIntent(id, intentId, paymentStatus, platformFee) {
+  const { rows } = await db.query(
+    `UPDATE bookings
+     SET stripe_payment_intent_id = $2, payment_status = $3, platform_fee = $4
+     WHERE id = $1
+     RETURNING *`,
+    [id, intentId, paymentStatus, platformFee]
+  );
+  return rows[0];
+}
+
+async function updatePaymentStatus(id, paymentStatus) {
+  const { rows } = await db.query(
+    `UPDATE bookings SET payment_status = $2 WHERE id = $1 RETURNING *`,
+    [id, paymentStatus]
+  );
+  return rows[0];
+}
+
+async function confirmJob(id, photos) {
+  const { rows } = await db.query(
+    `UPDATE bookings
+     SET status = 'completed', confirmation_photos = $2, confirmed_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [id, photos]
+  );
+  return rows[0];
+}
+
+module.exports = {
+  create, findById, findByHostId, findByCleanerId, updateStatus,
+  countByHostId, countByCleanerId,
+  updatePaymentIntent, updatePaymentStatus, confirmJob,
+};

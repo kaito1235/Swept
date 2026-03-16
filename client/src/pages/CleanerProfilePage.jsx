@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { getPublicCleanerProfile } from '../services/cleanerProfileService';
 import { getCleanerReviews } from '../services/reviewService';
+import { getOrCreateConversation } from '../services/messageService';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 
@@ -24,11 +26,25 @@ function parseArray(val) {
 
 export function CleanerProfilePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { appUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [startingChat, setStartingChat] = useState(false);
+
+  async function handleMessage() {
+    setStartingChat(true);
+    try {
+      const conv = await getOrCreateConversation(profile.user_id);
+      navigate(`/messages/${conv.id}`);
+    } catch {
+      toast.error('Failed to open conversation');
+    } finally {
+      setStartingChat(false);
+    }
+  }
 
   useEffect(() => {
     getPublicCleanerProfile(id)
@@ -97,9 +113,14 @@ export function CleanerProfilePage() {
           </div>
 
           {appUser?.role === 'host' && (
-            <Link to={`/book/${id}`}>
-              <Button>Book</Button>
-            </Link>
+            <div className="flex gap-2">
+              <Button variant="secondary" loading={startingChat} onClick={handleMessage}>
+                Message
+              </Button>
+              <Link to={`/book/${id}`}>
+                <Button>Book</Button>
+              </Link>
+            </div>
           )}
         </div>
 

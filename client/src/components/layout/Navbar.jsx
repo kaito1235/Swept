@@ -62,6 +62,13 @@ export function Navbar() {
                   </Link>
                 )}
 
+                <Link
+                  to="/messages"
+                  className="text-sm font-medium text-gray-600 hover:text-[#0D9488] transition-colors"
+                >
+                  Messages
+                </Link>
+
                 <span className="text-sm text-gray-400 hidden sm:inline">|</span>
                 <span className="text-sm text-gray-500 hidden sm:inline">{appUser?.name?.split(' ')[0]}</span>
                 <Button variant="ghost" onClick={handleLogout} className="text-sm px-3 py-1.5">

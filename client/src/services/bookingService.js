@@ -24,3 +24,13 @@ export async function getBookingStats() {
   const response = await apiClient.get('/bookings/stats');
   return response.data.data;
 }
+
+export async function createPaymentIntent(bookingId) {
+  const response = await apiClient.post('/payments/intent', { bookingId });
+  return response.data.data; // { clientSecret, intentId }
+}
+
+export async function confirmJob(bookingId, photos) {
+  const response = await apiClient.post(`/bookings/${bookingId}/confirm`, { photos });
+  return response.data.data;
+}

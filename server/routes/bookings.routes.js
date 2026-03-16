@@ -38,4 +38,14 @@ router.patch(
   controller.updateStatus
 );
 
+// Cleaner confirms job completion with photos (triggers payment capture)
+router.post(
+  '/:id/confirm',
+  requireAuth,
+  requireRole('cleaner'),
+  [body('photos').isArray().withMessage('photos must be an array')],
+  validate,
+  controller.confirmJob
+);
+
 module.exports = router;

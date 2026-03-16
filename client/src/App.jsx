@@ -17,6 +17,7 @@ import { CleanerBookingsPage } from './pages/cleaner/CleanerBookingsPage';
 import { PropertiesPage } from './pages/host/PropertiesPage';
 import { BookingRequestPage } from './pages/host/BookingRequestPage';
 import { HostBookingsPage } from './pages/host/HostBookingsPage';
+import { MessagesPage } from './pages/MessagesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export default function App() {
@@ -74,6 +75,13 @@ export default function App() {
             } />
             <Route path="/bookings" element={
               <ProtectedRoute requiredRole="host"><HostBookingsPage /></ProtectedRoute>
+            } />
+
+            <Route path="/messages" element={
+              <ProtectedRoute><MessagesPage /></ProtectedRoute>
+            } />
+            <Route path="/messages/:id" element={
+              <ProtectedRoute><MessagesPage /></ProtectedRoute>
             } />
 
             <Route path="/dashboard" element={<Navigate to="/" replace />} />

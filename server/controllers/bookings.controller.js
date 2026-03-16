@@ -103,4 +103,36 @@ async function stats(req, res) {
   }
 }
 
-module.exports = { create, listForHost, listForCleaner, updateStatus, stats };
+async function confirmJob(req, res) {
+  const { photos } = req.body; // array of public photo URLs from Supabase Storage
+  try {
+    const booking = await bookingModel.findById(req.params.id);
+    if (!booking) return notFound(res, 'Booking not found');
+    if (booking.cleaner_id !== req.user.id) return forbidden(res, 'Only the cleaner can confirm a job');
+    if (booking.status !== 'confirmed') {
+      return error(res, 'Booking must be confirmed before it can be completed', 400);
+    }
+
+    const updated = await bookingModel.confirmJob(req.params.id, photos || []);
+
+    // Capture payment if one was authorised
+    if (booking.stripe_payment_intent_id && booking.payment_status === 'authorized') {
+      try {
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        await stripe.paymentIntents.capture(booking.stripe_payment_intent_id);
+        await bookingModel.updatePaymentStatus(req.params.id, 'captured');
+      } catch (stripeErr) {
+        console.error('Payment capture failed after job confirmation:', stripeErr.message);
+        // Don't fail the confirmation — flag it for manual review
+        await bookingModel.updatePaymentStatus(req.params.id, 'capture_failed');
+      }
+    }
+
+    return success(res, updated);
+  } catch (err) {
+    console.error('bookings.confirmJob error:', err);
+    return error(res, 'Failed to confirm job');
+  }
+}
+
+module.exports = { create, listForHost, listForCleaner, updateStatus, stats, confirmJob };
